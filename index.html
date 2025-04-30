@@ -12,17 +12,40 @@
       width: 100%;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
+    thead th {
+      position: sticky;
+      top: 0;
+      background-color: #f0f0f0;
+      z-index: 1;
+    }
     th, td {
       border: 1px solid #ccc;
       padding: 10px;
       text-align: center;
     }
-    th {
-      background-color: #f0f0f0;
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
     }
-    .red {
-      color: red;
+    tr:hover {
+      background-color: #f1f8ff;
+    }
+    .avg-badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .avg-red {
+      background-color: #ffdddd;
+      color: #c00;
+    }
+    .avg-green {
+      background-color: #ddffdd;
+      color: #070;
+    }
+    .footer {
+      background-color: #e0f0ff;
       font-weight: bold;
+      color: #004c99;
     }
   </style>
 </head>
@@ -31,7 +54,6 @@
   <table id="sheetTable"></table>
 
   <script>
-    // 設定標題為今天日期
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -51,21 +73,29 @@
 
         // 標題列
         const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("");
-        table.innerHTML += `<tr>${headers}</tr>`;
+        table.innerHTML += `<thead><tr>${headers}</tr></thead><tbody></tbody>`;
+        const tbody = table.querySelector("tbody");
 
         // 資料列
         data.table.rows.forEach(row => {
+          const rowText = row.c.map(cell => cell?.v ?? "").join("");
           const cells = row.c.map((cell, index) => {
             if (cell && typeof cell.v === "number") {
-              if (index === row.c.length - 1 && cell.v > 250) {
-                return `<td class="red">${Math.round(cell.v)}</td>`;
+              const val = Math.round(cell.v);
+              const isFooter = rowText.includes("加總") || rowText.includes("餘額");
+
+              // 平均欄位紅綠標籤（最後一欄）
+              if (index === row.c.length - 1) {
+                const cls = val > 250 ? "avg-red" : "avg-green";
+                return `<td><span class="avg-badge ${cls}">${val}</span></td>`;
               }
-              return `<td>${Math.round(cell.v)}</td>`;
+
+              return `<td class="${isFooter ? "footer" : ""}">${val}</td>`;
             } else {
               return `<td>${cell?.v ?? ""}</td>`;
             }
           }).join("");
-          table.innerHTML += `<tr>${cells}</tr>`;
+          tbody.innerHTML += `<tr>${cells}</tr>`;
         });
       });
   </script>
