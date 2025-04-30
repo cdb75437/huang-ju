@@ -20,6 +20,10 @@
     th {
       background-color: #f0f0f0;
     }
+    .red {
+      color: red;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -27,7 +31,7 @@
   <table id="sheetTable"></table>
 
   <script>
-    // 動態設定標題為今天日期
+    // 設定標題為今天日期
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -49,10 +53,13 @@
         const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("");
         table.innerHTML += `<tr>${headers}</tr>`;
 
-        // 資料列（數字欄位四捨五入）
+        // 資料列
         data.table.rows.forEach(row => {
-          const cells = row.c.map(cell => {
+          const cells = row.c.map((cell, index) => {
             if (cell && typeof cell.v === "number") {
+              if (index === row.c.length - 1 && cell.v > 250) {
+                return `<td class="red">${Math.round(cell.v)}</td>`;
+              }
               return `<td>${Math.round(cell.v)}</td>`;
             } else {
               return `<td>${cell?.v ?? ""}</td>`;
