@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>客戶專用報表 - Sheet2</title>
+  <title>客戶專用報表 - 含日期欄</title>
   <style>
     body { font-family: Arial; padding: 20px; background-color: #fafafa; }
     h2 { color: #333; }
@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <h2>📊 客戶專用報表（來自 Sheet2）</h2>
+  <h2>📊 客戶專用報表（正確呈現 A~E 欄）</h2>
   <table id="sheetTable"></table>
 
   <script>
@@ -36,13 +36,13 @@
       .then(rep => {
         const data = JSON.parse(rep.substr(47).slice(0, -2));
         const table = document.getElementById("sheetTable");
-        
-        // 取得資料列（跳過第一列）
-        const rows = data.table.rows.slice(1);  // skip first row (非表頭)
-        const headers = rows[0].c.map(cell => `<th>${cell?.v ?? ""}</th>`).join("");
+
+        // 正確處理標題列 A1~E1
+        const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("");
         table.innerHTML += `<tr>${headers}</tr>`;
 
-        rows.slice(1).forEach(row => {
+        // 顯示所有資料列（包含日期欄）
+        data.table.rows.forEach(row => {
           const cells = row.c.map(cell => `<td>${cell?.v ?? ""}</td>`).join("");
           table.innerHTML += `<tr>${cells}</tr>`;
         });
