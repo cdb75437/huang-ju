@@ -55,6 +55,10 @@
   <label for="idFilter">🔍 篩選 ID：</label>
   <select id="idFilter" style="margin-bottom: 10px; padding: 8px; font-size: 16px;">
     <option value="">全部顯示</option>
+    <option value="小Z">小Z</option>
+    <option value="鑫">鑫</option>
+    <option value="小春">小春</option>
+    <option value="阿軒">阿軒</option>
   </select>
   <table id="sheetTable"></table>
   
@@ -107,50 +111,15 @@
   </script>
 
   <script>
-    // 建立篩選下拉選單
-    const idSet = new Set();
-    const originalRows = [];
-
-    function populateFilterAndRows() {
-      const table = document.getElementById("sheetTable");
-      const rows = table.querySelectorAll("tbody tr");
-
+    // 固定下拉選項篩選
+    document.getElementById("idFilter").addEventListener("change", function () {
+      const keyword = this.value;
+      const rows = document.querySelectorAll("#sheetTable tbody tr");
       rows.forEach(row => {
-        const idCell = row.cells[0]?.textContent.trim();
-        if (idCell) {
-          idSet.add(idCell);
-        }
-        originalRows.push(row);
+        const text = row.cells[0]?.textContent.trim();
+        row.style.display = (!keyword || text === keyword) ? "" : "none";
       });
-
-      const select = document.getElementById("idFilter");
-      [...idSet].sort().forEach(id => {
-        const option = document.createElement("option");
-        option.value = id;
-        option.textContent = id;
-        select.appendChild(option);
-      });
-
-      select.addEventListener("change", function () {
-        const keyword = this.value;
-        originalRows.forEach(row => {
-          const text = row.cells[0]?.textContent.trim();
-          row.style.display = (!keyword || text === keyword) ? "" : "none";
-        });
-      });
-    }
-
-    // 等 fetch 完成再執行篩選初始化
-    const origFetch = fetch;
-    fetch = function(...args) {
-      return origFetch(...args).then(res => {
-        const clone = res.clone();
-        clone.text().then(text => {
-          setTimeout(() => populateFilterAndRows(), 500);
-        });
-        return res;
-      });
-    };
+    });
   </script>
   </body>
   
