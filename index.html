@@ -37,18 +37,20 @@
         const data = JSON.parse(rep.substr(47).slice(0, -2));
         const table = document.getElementById("sheetTable");
 
-        // 標題列 + 加一欄“平均”
-        const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("") + "<th>平均</th>";
+        // 標題列
+        const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("");
         table.innerHTML += `<tr>${headers}</tr>`;
 
-        // 每一列加總金額 / 表單欄並取整數
+        // 資料列
         data.table.rows.forEach(row => {
-          const cells = row.c.map(cell => `<td>${cell?.v ?? ""}</td>`);
-          const 金額 = Number(row.c[3]?.v ?? 0);
-          const 表單 = Number(row.c[4]?.v ?? 1);
-          const 平均 = 表單 ? Math.round(金額 / 表單) : "";
-          cells.push(`<td>${平均}</td>`);
-          table.innerHTML += `<tr>${cells.join("")}</tr>`;
+          const cells = row.c.map((cell, index) => {
+            if (cell && typeof cell.v === "number") {
+              return `<td>${Math.round(cell.v)}</td>`;
+            } else {
+              return `<td>${cell?.v ?? ""}</td>`;
+            }
+          }).join("");
+          table.innerHTML += `<tr>${cells}</tr>`;
         });
       });
   </script>
