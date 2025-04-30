@@ -51,7 +51,10 @@
 </head>
 <body>
   <h2 id="report-title">📊 報表載入中...</h2>
+  
+  <input type="text" id="searchInput" placeholder="🔍 搜尋關鍵字..." style="margin-bottom: 10px; padding: 8px; width: 100%; max-width: 400px; font-size: 16px;">
   <table id="sheetTable"></table>
+  
 
   <script>
     const today = new Date();
@@ -99,5 +102,18 @@
         });
       });
   </script>
-</body>
+
+  <script>
+    // 搜尋欄邏輯
+    document.getElementById("searchInput").addEventListener("input", function () {
+      const keyword = this.value.toLowerCase();
+      const rows = document.querySelectorAll("#sheetTable tbody tr");
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(keyword) ? "" : "none";
+      });
+    });
+  </script>
+  </body>
+  
 </html>
