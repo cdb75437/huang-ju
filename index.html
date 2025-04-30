@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>客戶專用報表 - 4/30</title>
+  <title>客戶專用報表 - Sheet2</title>
   <style>
     body { font-family: Arial; padding: 20px; background-color: #fafafa; }
     h2 { color: #333; }
@@ -23,12 +23,12 @@
   </style>
 </head>
 <body>
-  <h2>📊 4/30 客戶專用報表</h2>
+  <h2>📊 客戶專用報表（來自 Sheet2）</h2>
   <table id="sheetTable"></table>
 
   <script>
     const sheetID = "1zuolSpQkKCwDnhx4TNUZuWMIj_7JNJMrLBWrfYuubPQ";
-    const sheetName = "選單";
+    const sheetName = "Sheet2";
     const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}`;
 
     fetch(url)
@@ -36,10 +36,13 @@
       .then(rep => {
         const data = JSON.parse(rep.substr(47).slice(0, -2));
         const table = document.getElementById("sheetTable");
-        const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("");
+        
+        // 取得資料列（跳過第一列）
+        const rows = data.table.rows.slice(1);  // skip first row (非表頭)
+        const headers = rows[0].c.map(cell => `<th>${cell?.v ?? ""}</th>`).join("");
         table.innerHTML += `<tr>${headers}</tr>`;
 
-        data.table.rows.forEach(row => {
+        rows.slice(1).forEach(row => {
           const cells = row.c.map(cell => `<td>${cell?.v ?? ""}</td>`).join("");
           table.innerHTML += `<tr>${cells}</tr>`;
         });
