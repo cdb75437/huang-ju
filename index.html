@@ -32,46 +32,87 @@
 </head>
 <body>
   <h2>📊 2025/05/01 客戶專用報表</h2>
+  <label>篩選 ID：
+    <select id="idFilter" onchange="filterTable()">
+      <option value="全部顯示">全部顯示</option>
+    </select>
+  </label>
   <table id="sheetTable"></table>
 
   <script>
     const sheetID = "1zuolSpQkKCwDnhx4TNUZuWMIj_7JNJMrLBWrfYuubPQ";
-    const sheetName = "Sheet2";  // ✅ 改回 Sheet2
+    const sheetName = "Sheet2";
     const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}`;
+
+    let allData = [];
 
     fetch(url)
       .then(res => res.text())
       .then(rep => {
         const data = JSON.parse(rep.substr(47).slice(0, -2));
+        allData = data.table.rows;
         const table = document.getElementById("sheetTable");
 
         // 標題列
         const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("");
-        table.innerHTML += `<tr>${headers}</tr>`;
+        table.innerHTML = `<tr>${headers}</tr>`;
 
-        data.table.rows.forEach((row) => {
-          const firstCell = row.c[0]?.v ?? "";
-          let rowHTML = "";
+        // 填入下拉選單的 ID 集合
+        const idSet = new Set();
+        allData.forEach(row => {
+          const id = row.c[0]?.v ?? "";
+          if (id && id !== "加總" && id !== "餘額") idSet.add(id);
+        });
+        const select = document.getElementById("idFilter");
+        idSet.forEach(id => {
+          const opt = document.createElement("option");
+          opt.value = id;
+          opt.textContent = id;
+          select.appendChild(opt);
+        });
 
-          row.c.forEach((cell, colIndex) => {
-            let value = cell?.v ?? "";
-            if (typeof value === "number") value = Math.round(value);
+        // 初始顯示全部
+        renderTable("全部顯示");
+      });
 
-            // 平均欄位是第7欄（index = 6），大於 250 加紅字
-            if (colIndex === 6 && typeof value === "number" && value > 250) {
-              rowHTML += `<td class="avg-red">${value}</td>`;
-            } else {
-              rowHTML += `<td>${value}</td>`;
-            }
-          });
+    function renderTable(filterID) {
+      const table = document.getElementById("sheetTable");
+      const data = allData;
+      table.innerHTML = `<tr>
+        <th>日期</th><th>ID</th><th>主題</th><th>狀態</th><th>預算</th><th>金額</th><th>表單</th><th>平均</th><th>客戶需求</th>
+      </tr>`;
 
-          if (firstCell === "加總" || firstCell === "餘額") {
-            table.innerHTML += `<tr class="highlight">${rowHTML}</tr>`;
+      data.forEach(row => {
+        const id = row.c[1]?.v ?? ""; // B欄是ID
+        if (filterID !== "全部顯示" && id !== filterID) return;
+
+        const firstCell = row.c[0]?.v ?? "";
+        let rowHTML = "";
+
+        row.c.forEach((cell, colIndex) => {
+          let value = cell?.v ?? "";
+          if (typeof value === "number") value = Math.round(value);
+
+          // 平均欄位是第8欄（index = 7），大於 250 加紅字
+          if (colIndex === 7 && typeof value === "number" && value > 250) {
+            rowHTML += `<td class="avg-red">${value}</td>`;
           } else {
-            table.innerHTML += `<tr>${rowHTML}</tr>`;
+            rowHTML += `<td>${value}</td>`;
           }
         });
+
+        if (firstCell === "加總" || firstCell === "餘額") {
+          table.innerHTML += `<tr class="highlight">${rowHTML}</tr>`;
+        } else {
+          table.innerHTML += `<tr>${rowHTML}</tr>`;
+        }
       });
+    }
+
+    function filterTable() {
+      const selectedID = document.getElementById("idFilter").value;
+      renderTable(selectedID);
+    }
   </script>
 </body>
 </html>
