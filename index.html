@@ -53,11 +53,11 @@
         allData = data.table.rows;
         const table = document.getElementById("sheetTable");
 
-        // 標題列
-        const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("");
+        // 標題列（不包含日期）
+        const headers = data.table.cols.slice(1).map(col => `<th>${col.label}</th>`).join("");
         table.innerHTML = `<tr>${headers}</tr>`;
 
-        // 填入下拉選單的 ID 集合
+        // 收集 ID（B欄 index=0 因為日期拿掉後第一欄是ID）
         const idSet = new Set();
         allData.forEach(row => {
           const id = row.c[0]?.v ?? "";
@@ -77,24 +77,23 @@
 
     function renderTable(filterID) {
       const table = document.getElementById("sheetTable");
-      const data = allData;
       table.innerHTML = `<tr>
-        <th>日期</th><th>ID</th><th>主題</th><th>狀態</th><th>預算</th><th>金額</th><th>表單</th><th>平均</th><th>客戶需求</th>
+        <th>ID</th><th>主題</th><th>狀態</th><th>預算</th><th>金額</th><th>表單</th><th>平均</th><th>客戶需求</th>
       </tr>`;
 
-      data.forEach(row => {
-        const id = row.c[1]?.v ?? ""; // B欄是ID
+      allData.forEach(row => {
+        const id = row.c[0]?.v ?? ""; // A欄現在是ID
         if (filterID !== "全部顯示" && id !== filterID) return;
 
         const firstCell = row.c[0]?.v ?? "";
         let rowHTML = "";
 
-        row.c.forEach((cell, colIndex) => {
+        row.c.slice(1).forEach((cell, colIndex) => {
           let value = cell?.v ?? "";
           if (typeof value === "number") value = Math.round(value);
 
-          // 平均欄位是第8欄（index = 7），大於 250 加紅字
-          if (colIndex === 7 && typeof value === "number" && value > 250) {
+          // 平均欄位 index = 6（G欄，因為少了日期）
+          if (colIndex === 6 && typeof value === "number" && value > 250) {
             rowHTML += `<td class="avg-red">${value}</td>`;
           } else {
             rowHTML += `<td>${value}</td>`;
@@ -102,9 +101,9 @@
         });
 
         if (firstCell === "加總" || firstCell === "餘額") {
-          table.innerHTML += `<tr class="highlight">${rowHTML}</tr>`;
+          table.innerHTML += `<tr class="highlight"><td>${firstCell}</td>${rowHTML}</tr>`;
         } else {
-          table.innerHTML += `<tr>${rowHTML}</tr>`;
+          table.innerHTML += `<tr><td>${firstCell}</td>${rowHTML}</tr>`;
         }
       });
     }
