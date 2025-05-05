@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>2025/05/04 報表</title>
+  <title>客戶專用報表</title>
   <style>
     body { font-family: Arial; padding: 20px; background-color: #fafafa; }
     h2 { color: #333; }
@@ -31,7 +30,7 @@
   </style>
 </head>
 <body>
-  <h2>📊 2025/05/04 客戶專用報表</h2>
+  <h2 id="reportTitle">📊 報表</h2>
   <label>篩選 ID：
     <select id="idFilter" onchange="filterTable()">
       <option value="全部顯示">全部顯示</option>
@@ -40,6 +39,14 @@
   <table id="sheetTable"></table>
 
   <script>
+    // ====== 自動產生今日日期，放入 H2 ======
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    document.getElementById("reportTitle").textContent = `📊 ${yyyy}/${mm}/${dd} 客戶專用報表（皇鉅 專用）`;
+
+    // ====== Google Sheet 連接資訊 ======
     const sheetID = "1zuolSpQkKCwDnhx4TNUZuWMIj_7JNJMrLBWrfYuubPQ";
     const sheetName = "Sheet2";
     const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}`;
@@ -53,11 +60,11 @@
         allData = data.table.rows;
         const table = document.getElementById("sheetTable");
 
-        // 標題列（不包含日期）
+        // 標題列（跳過日期，ID 開始）
         const headers = data.table.cols.slice(1).map(col => `<th>${col.label}</th>`).join("");
         table.innerHTML = `<tr>${headers}</tr>`;
 
-        // 收集 ID（B欄 index=0 因為日期拿掉後第一欄是ID）
+        // 收集 ID（A欄是 ID）
         const idSet = new Set();
         allData.forEach(row => {
           const id = row.c[0]?.v ?? "";
@@ -71,10 +78,10 @@
           select.appendChild(opt);
         });
 
-        // 初始顯示全部
         renderTable("全部顯示");
       });
 
+    // ====== 顯示表格內容 ======
     function renderTable(filterID) {
       const table = document.getElementById("sheetTable");
       table.innerHTML = `<tr>
@@ -82,7 +89,7 @@
       </tr>`;
 
       allData.forEach(row => {
-        const id = row.c[0]?.v ?? ""; // A欄現在是ID
+        const id = row.c[0]?.v ?? "";
         if (filterID !== "全部顯示" && id !== filterID) return;
 
         const firstCell = row.c[0]?.v ?? "";
@@ -92,7 +99,7 @@
           let value = cell?.v ?? "";
           if (typeof value === "number") value = Math.round(value);
 
-          // 平均欄位 index = 6（G欄，因為少了日期）
+          // 平均欄位（第 7 欄，index=6），數值大於 250 變紅
           if (colIndex === 6 && typeof value === "number" && value > 250) {
             rowHTML += `<td class="avg-red">${value}</td>`;
           } else {
@@ -108,6 +115,7 @@
       });
     }
 
+    // ====== 篩選功能 ======
     function filterTable() {
       const selectedID = document.getElementById("idFilter").value;
       renderTable(selectedID);
