@@ -48,7 +48,7 @@
 
     // ====== Google Sheet 資料 ======
     const sheetID = "1zuolSpQkKCwDnhx4TNUZuWMIj_7JNJMrLBWrfYuubPQ";
-    const sheetName = "Sheet2"; // 如果之後要改 Sheet3 改這裡
+    const sheetName = "Sheet2";
     const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}`;
 
     let allData = [];
@@ -60,11 +60,11 @@
         allData = data.table.rows;
         const table = document.getElementById("sheetTable");
 
-        // 產生標題列（抓到所有欄位）
+        // 產生標題列
         const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("");
         table.innerHTML = `<tr>${headers}</tr>`;
 
-        // 收集 ID（A欄是 ID），但不收加總或餘額
+        // 收集 ID（A欄是 ID）
         const idSet = new Set();
         allData.forEach(row => {
           const id = row.c[0]?.v ?? "";
@@ -96,23 +96,29 @@
 
         let rowHTML = "";
         row.c.forEach((cell, colIndex) => {
-          let value = cell?.v ?? "";
+          let value = cell?.v;
 
-          // 如果是數字 -> 四捨五入
-          if (typeof value === "number") value = Math.round(value);
+          // 修正：強制轉換 undefined、null、空字串
+          if (typeof value === "undefined" || value === null) {
+            value = "";
+          } else if (typeof value === "number") {
+            value = Math.round(value); // 數字四捨五入
+          } else {
+            value = value.toString();  // 不管什麼型別，轉成文字
+          }
 
           // 平均欄（G欄，index=6），超過 250 變紅
-          if (colIndex === 6 && typeof value === "number" && value > 250) {
+          if (colIndex === 6 && !isNaN(value) && Number(value) > 250) {
             rowHTML += `<td class="avg-red">${value}</td>`;
           } else {
             rowHTML += `<td>${value}</td>`;
           }
         });
 
-        // 特別處理：加總、餘額、暱稱、總金額、總表單行變色
-        const specialKeywords = ["加總", "餘額", "暱稱", "當月總金額", "總表單"];
-        const firstCell = row.c[0]?.v ?? row.c[1]?.v ?? ""; // A欄或B欄
-        const isHighlight = specialKeywords.some(word => firstCell.includes(word));
+        // 特別行變色
+        const specialWords = ["加總", "餘額", "暱稱", "當月總金額", "總表單", "小計"];
+        const firstCell = row.c[0]?.v ?? row.c[1]?.v ?? "";
+        const isHighlight = specialWords.some(word => firstCell?.toString().includes(word));
 
         if (isHighlight) {
           table.innerHTML += `<tr class="highlight">${rowHTML}</tr>`;
