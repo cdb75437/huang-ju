@@ -39,16 +39,16 @@
   <table id="sheetTable"></table>
 
   <script>
-    // ====== 自動產生今日日期，放入 H2 ======
+    // ====== 自動產生今日日期 ======
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     document.getElementById("reportTitle").textContent = `📊 ${yyyy}/${mm}/${dd} 客戶專用報表（皇鉅 專用）`;
 
-    // ====== Google Sheet 連接資訊 ======
+    // ====== Google Sheet 資料 ======
     const sheetID = "1zuolSpQkKCwDnhx4TNUZuWMIj_7JNJMrLBWrfYuubPQ";
-    const sheetName = "Sheet2";
+    const sheetName = "Sheet2"; // 如果之後要改 Sheet3 改這裡
     const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}`;
 
     let allData = [];
@@ -60,11 +60,11 @@
         allData = data.table.rows;
         const table = document.getElementById("sheetTable");
 
-        // 標題列（跳過日期，ID 開始）
-        const headers = data.table.cols.slice(1).map(col => `<th>${col.label}</th>`).join("");
+        // 產生標題列（抓到所有欄位）
+        const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("");
         table.innerHTML = `<tr>${headers}</tr>`;
 
-        // 收集 ID（A欄是 ID）
+        // 收集 ID（A欄是 ID），但不收加總或餘額
         const idSet = new Set();
         allData.forEach(row => {
           const id = row.c[0]?.v ?? "";
@@ -90,16 +90,18 @@
 
       allData.forEach(row => {
         const id = row.c[0]?.v ?? "";
+
+        // 篩選
         if (filterID !== "全部顯示" && id !== filterID) return;
 
-        const firstCell = row.c[0]?.v ?? "";
         let rowHTML = "";
-
-        row.c.slice(1).forEach((cell, colIndex) => {
+        row.c.forEach((cell, colIndex) => {
           let value = cell?.v ?? "";
+
+          // 如果是數字 -> 四捨五入
           if (typeof value === "number") value = Math.round(value);
 
-          // 平均欄位（第 7 欄，index=6），數值大於 250 變紅
+          // 平均欄（G欄，index=6），超過 250 變紅
           if (colIndex === 6 && typeof value === "number" && value > 250) {
             rowHTML += `<td class="avg-red">${value}</td>`;
           } else {
@@ -107,10 +109,15 @@
           }
         });
 
-        if (firstCell === "加總" || firstCell === "餘額") {
-          table.innerHTML += `<tr class="highlight"><td>${firstCell}</td>${rowHTML}</tr>`;
+        // 特別處理：加總、餘額、暱稱、總金額、總表單行變色
+        const specialKeywords = ["加總", "餘額", "暱稱", "當月總金額", "總表單"];
+        const firstCell = row.c[0]?.v ?? row.c[1]?.v ?? ""; // A欄或B欄
+        const isHighlight = specialKeywords.some(word => firstCell.includes(word));
+
+        if (isHighlight) {
+          table.innerHTML += `<tr class="highlight">${rowHTML}</tr>`;
         } else {
-          table.innerHTML += `<tr><td>${firstCell}</td>${rowHTML}</tr>`;
+          table.innerHTML += `<tr>${rowHTML}</tr>`;
         }
       });
     }
