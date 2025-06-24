@@ -58,13 +58,13 @@
         allData = data.table.rows;
         const table = document.getElementById("sheetTable");
 
-        // 表頭標籤（12欄）
+        // 表頭列（新增 管理員）
         table.innerHTML = `<tr>
           <th>ID</th><th>主題</th><th>狀態</th><th>預算</th><th>金額</th><th>表單</th>
-          <th>平均</th><th>客戶需求</th><th>粉絲團</th><th>貼文網址</th><th>素材</th><th>LINE</th>
+          <th>平均</th><th>客戶需求</th><th>粉絲團</th><th>貼文網址</th><th>素材</th><th>LINE</th><th>管理員</th>
         </tr>`;
 
-        // 篩選下拉 ID
+        // 收集 ID
         const idSet = new Set();
         allData.forEach(row => {
           const id = row.c[0]?.v ?? "";
@@ -85,7 +85,7 @@
       const table = document.getElementById("sheetTable");
       table.innerHTML = `<tr>
         <th>ID</th><th>主題</th><th>狀態</th><th>預算</th><th>金額</th><th>表單</th>
-        <th>平均</th><th>客戶需求</th><th>粉絲團</th><th>貼文網址</th><th>素材</th><th>LINE</th>
+        <th>平均</th><th>客戶需求</th><th>粉絲團</th><th>貼文網址</th><th>素材</th><th>LINE</th><th>管理員</th>
       </tr>`;
 
       allData.forEach(row => {
@@ -107,17 +107,16 @@
           if (colIndex === 6 && !isNaN(value) && Number(value) > 250) {
             rowHTML += `<td class="avg-red">${value}</td>`;
 
-          // 粉絲團、貼文網址、素材、LINE（欄位 index = 8~11） → 超連結
+          // 8~11欄位：粉絲團、貼文網址、素材、LINE 轉網址
           } else if ([8, 9, 10, 11].includes(colIndex) && value.startsWith("http")) {
             rowHTML += `<td><a href="${value}" target="_blank">網址</a></td>`;
 
-          // 其他欄位
+          // 其他欄位（含 管理員 index=12）
           } else {
             rowHTML += `<td>${value}</td>`;
           }
         });
 
-        // 特殊行加亮
         const firstCell = row.c[0]?.v ?? row.c[1]?.v ?? "";
         const specialWords = ["加總", "餘額", "暱稱", "當月總金額", "總表單", "小計"];
         const isHighlight = specialWords.some(word => firstCell?.toString().includes(word));
