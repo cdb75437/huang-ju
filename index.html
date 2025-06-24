@@ -108,7 +108,7 @@
             rowHTML += `<td class="avg-red">${value}</td>`;
 
           // 8~11欄位：粉絲團、貼文網址、素材、LINE 轉網址
-          } else if ([8, 9, 10, 11].includes(colIndex) && value.startsWith("http")) {
+          } else if ([8, 9, 10, 11, 12].includes(colIndex) && value.startsWith("http")) {
             rowHTML += `<td><a href="${value}" target="_blank">網址</a></td>`;
 
           // 其他欄位（含 管理員 index=12）
