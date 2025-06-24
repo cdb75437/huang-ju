@@ -101,20 +101,24 @@
             value = value.toString();
           }
 
-          // 平均欄變紅
+          // 平均欄（第7欄 G）紅字顯示
           if (colIndex === 6 && !isNaN(value) && Number(value) > 250) {
             rowHTML += `<td class="avg-red">${value}</td>`;
 
-          // 粉絲團欄轉超連結
+          // 粉絲團欄（第9欄 H）用 "網址" 當顯示文字
           } else if (colIndex === 8 && value.startsWith("http")) {
             rowHTML += `<td><a href="${value}" target="_blank">網址</a></td>`;
+
+          // 貼文網址欄（第10欄 I）顯示完整網址
+          } else if (colIndex === 9 && value.startsWith("http")) {
+            rowHTML += `<td><a href="${value}" target="_blank">${value}</a></td>`;
 
           } else {
             rowHTML += `<td>${value}</td>`;
           }
         });
 
-        // 特別行變色
+        // 高亮特殊行
         const firstCell = row.c[0]?.v ?? row.c[1]?.v ?? "";
         const specialWords = ["加總", "餘額", "暱稱", "當月總金額", "總表單", "小計"];
         const isHighlight = specialWords.some(word => firstCell?.toString().includes(word));
