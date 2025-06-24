@@ -114,6 +114,15 @@
           }
         });
 
+        // 粉絲團貼文欄轉超連結
+          } else if (colIndex === 9 && value.startsWith("http")) {
+            rowHTML += `<td><a href="${value}" target="_blank">網址</a></td>`;
+
+          } else {
+            rowHTML += `<td>${value}</td>`;
+          }
+        });
+
         // 特別行變色
         const firstCell = row.c[0]?.v ?? row.c[1]?.v ?? "";
         const specialWords = ["加總", "餘額", "暱稱", "當月總金額", "總表單", "小計"];
