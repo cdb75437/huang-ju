@@ -58,11 +58,13 @@
         allData = data.table.rows;
         const table = document.getElementById("sheetTable");
 
-        // 動態產生表頭
-        const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("");
-        table.innerHTML = `<tr>${headers}</tr>`;
+        // 表頭標籤（12欄）
+        table.innerHTML = `<tr>
+          <th>ID</th><th>主題</th><th>狀態</th><th>預算</th><th>金額</th><th>表單</th>
+          <th>平均</th><th>客戶需求</th><th>粉絲團</th><th>貼文網址</th><th>素材</th><th>LINE</th>
+        </tr>`;
 
-        // 收集 ID
+        // 篩選下拉 ID
         const idSet = new Set();
         allData.forEach(row => {
           const id = row.c[0]?.v ?? "";
@@ -82,7 +84,8 @@
     function renderTable(filterID) {
       const table = document.getElementById("sheetTable");
       table.innerHTML = `<tr>
-        <th>ID</th><th>主題</th><th>狀態</th><th>預算</th><th>金額</th><th>表單</th><th>平均</th><th>客戶需求</th><th>粉絲團</th><th>貼文網址</th><th>素材</th><th>LINE</th>
+        <th>ID</th><th>主題</th><th>狀態</th><th>預算</th><th>金額</th><th>表單</th>
+        <th>平均</th><th>客戶需求</th><th>粉絲團</th><th>貼文網址</th><th>素材</th><th>LINE</th>
       </tr>`;
 
       allData.forEach(row => {
@@ -90,44 +93,31 @@
         if (filterID !== "全部顯示" && id !== filterID) return;
 
         let rowHTML = "";
-        row.c.forEach((cell, colIndex) => {
-          let value = cell?.v;
 
-          if (typeof value === "undefined" || value === null) {
-            value = "";
-          } else if (typeof value === "number") {
+        row.c.forEach((cell, colIndex) => {
+          let value = cell?.v ?? "";
+
+          if (typeof value === "number") {
             value = Math.round(value);
           } else {
             value = value.toString();
           }
 
-          // 平均欄（第7欄 G）紅字顯示
+          // 平均欄紅字
           if (colIndex === 6 && !isNaN(value) && Number(value) > 250) {
             rowHTML += `<td class="avg-red">${value}</td>`;
 
-          // 粉絲團欄（第9欄 H）用 "網址" 當顯示文字
-          } else if (colIndex === 8 && value.startsWith("http")) {
+          // 粉絲團、貼文網址、素材、LINE（欄位 index = 8~11） → 超連結
+          } else if ([8, 9, 10, 11].includes(colIndex) && value.startsWith("http")) {
             rowHTML += `<td><a href="${value}" target="_blank">網址</a></td>`;
 
-          // 貼文網址欄（第10欄 I）顯示完整網址
-          } else if (colIndex === 9 && value.startsWith("http")) {
-            rowHTML += `<td><a href="${value}" target="_blank">${value}</a>網址</td>`;
-
-          // 貼文網址欄（第11欄 J）顯示完整網址
-          } else if (colIndex === 10 && value.startsWith("http")) {
-            rowHTML += `<td><a href="${value}" target="_blank">${value}</a>網址</td>`;
-
-          // 貼文網址欄（第12欄 K）顯示完整網址
-          } else if (colIndex === 11 && value.startsWith("http")) {
-            rowHTML += `<td><a href="${value}" target="_blank">${value}</a>網址</td>`;
-
-            
+          // 其他欄位
           } else {
             rowHTML += `<td>${value}</td>`;
           }
         });
 
-        // 高亮特殊行
+        // 特殊行加亮
         const firstCell = row.c[0]?.v ?? row.c[1]?.v ?? "";
         const specialWords = ["加總", "餘額", "暱稱", "當月總金額", "總表單", "小計"];
         const isHighlight = specialWords.some(word => firstCell?.toString().includes(word));
