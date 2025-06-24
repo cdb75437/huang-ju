@@ -39,14 +39,12 @@
   <table id="sheetTable"></table>
 
   <script>
-    // ====== 自動產生今日日期 ======
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     document.getElementById("reportTitle").textContent = `📊 ${yyyy}/${mm}/${dd} 客戶專用報表（皇鉅 專用）`;
 
-    // ====== Google Sheet 資料 ======
     const sheetID = "1VRX5HIrcxKDzHnFBzny4Ny5Spbv_omND3h4PW3e3pWI";
     const sheetName = "Sheet2";
     const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}`;
@@ -60,11 +58,11 @@
         allData = data.table.rows;
         const table = document.getElementById("sheetTable");
 
-        // 產生標題列
+        // 動態產生表頭
         const headers = data.table.cols.map(col => `<th>${col.label}</th>`).join("");
         table.innerHTML = `<tr>${headers}</tr>`;
 
-        // 收集 ID（A欄是 ID）
+        // 收集 ID
         const idSet = new Set();
         allData.forEach(row => {
           const id = row.c[0]?.v ?? "";
@@ -81,7 +79,6 @@
         renderTable("全部顯示");
       });
 
-    // ====== 顯示表格內容 ======
     function renderTable(filterID) {
       const table = document.getElementById("sheetTable");
       table.innerHTML = `<tr>
@@ -90,45 +87,41 @@
 
       allData.forEach(row => {
         const id = row.c[0]?.v ?? "";
-
-        // 篩選
         if (filterID !== "全部顯示" && id !== filterID) return;
 
         let rowHTML = "";
         row.c.forEach((cell, colIndex) => {
           let value = cell?.v;
 
-          // 修正：強制轉換 undefined、null、空字串
           if (typeof value === "undefined" || value === null) {
             value = "";
           } else if (typeof value === "number") {
-            value = Math.round(value); // 數字四捨五入
+            value = Math.round(value);
           } else {
-            value = value.toString();  // 不管什麼型別，轉成文字
+            value = value.toString();
           }
 
-          // 平均欄（G欄，index=6），超過 250 變紅
+          // 平均欄變紅
           if (colIndex === 6 && !isNaN(value) && Number(value) > 250) {
             rowHTML += `<td class="avg-red">${value}</td>`;
+
+          // 粉絲團欄轉超連結
+          } else if (colIndex === 8 && value.startsWith("http")) {
+            rowHTML += `<td><a href="${value}" target="_blank">網址</a></td>`;
+
           } else {
             rowHTML += `<td>${value}</td>`;
           }
         });
 
         // 特別行變色
-        const specialWords = ["加總", "餘額", "暱稱", "當月總金額", "總表單", "小計"];
         const firstCell = row.c[0]?.v ?? row.c[1]?.v ?? "";
+        const specialWords = ["加總", "餘額", "暱稱", "當月總金額", "總表單", "小計"];
         const isHighlight = specialWords.some(word => firstCell?.toString().includes(word));
-
-        if (isHighlight) {
-          table.innerHTML += `<tr class="highlight">${rowHTML}</tr>`;
-        } else {
-          table.innerHTML += `<tr>${rowHTML}</tr>`;
-        }
+        table.innerHTML += isHighlight ? `<tr class="highlight">${rowHTML}</tr>` : `<tr>${rowHTML}</tr>`;
       });
     }
 
-    // ====== 篩選功能 ======
     function filterTable() {
       const selectedID = document.getElementById("idFilter").value;
       renderTable(selectedID);
